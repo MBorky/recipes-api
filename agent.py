@@ -124,8 +124,7 @@ class GithubTools:
         Post your final review to the PR comment on Github.
         """
         current_state = await ctx.store.get("state")  # type: ignore
-        self._g.get_repo(self._repo_name).get_pull(
-            pr_number).create_review(body=current_state.get(
+        self._repo.get_pull(pr_number).create_review(body=current_state.get(
             "final_review_comment"))  # type: ignore
     
     def to_function_tools(self, method_names: list[str] | None = None) -> list[
@@ -223,7 +222,7 @@ base_url = os.getenv("OPENAI_BASE_URL")
 api_key = os.getenv("OPENAI_API_KEY")
 auth = Auth.Token(git_token)
 g = Github(auth=auth)
-pr_number = os.getenv("PR_NUMBER")
+pr_n = int(os.getenv("PR_NUMBER"))
 
 llm = OpenAI(model="gpt-4o-mini", api_base=base_url, api_key=api_key)
 github_tools = GithubTools(g, repository)
@@ -244,7 +243,7 @@ workflow_agent = AgentWorkflow(
 
 
 async def main():
-    query = f"Write a review for PR number {pr_number}"
+    query = f"Write a review for PR number {pr_n}"
     prompt = RichPromptTemplate(query)
 
     handler = workflow_agent.run(prompt.format())
