@@ -126,7 +126,7 @@ class GithubTools:
         """
         current_state = await ctx.store.get("state")  # type: ignore
         self._repo.get_pull(pr_number).create_review(body=current_state.get(
-            "final_review_comment"))  # type: ignore
+            "final_review_comment"), event="COMMENT")  # type: ignore
     
     def to_function_tools(self, method_names: list[str] | None = None) -> list[
         FunctionTool]:
