@@ -10,7 +10,8 @@ from github import Github, Auth
 from llama_index.core.agent.workflow import FunctionAgent
 from llama_index.core.tools import FunctionTool
 from llama_index.core.workflow import Context
-
+from pathlib import Path
+import sys
 
 class GithubTools:
     """
@@ -214,15 +215,39 @@ Once a review is generated, you need to run a final check and post it to GitHub.
     
     return context_agent, commentor_agent, review_and_posting_agent
 
+if Path('.env').exists():
+    load_dotenv()
+
 repository = os.getenv("REPOSITORY")
-repo_url = "https://github.com/MBorky/recipes-api.git"
-load_dotenv(override=True)
+if not repository:
+    print("ERROR: REPOSITORY environment variable not set", file=sys.stderr)
+    sys.exit(1)
+
 git_token = os.getenv("GITHUB_TOKEN")
+if not git_token:
+    print("ERROR: GITHUB_TOKEN environment variable not set", file=sys.stderr)
+    sys.exit(1)
+
 base_url = os.getenv("OPENAI_BASE_URL")
 api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    print("ERROR: OPENAI_API_KEY environment variable not set", file=sys.stderr)
+    sys.exit(1)
+
+pr_number_str = os.getenv("PR_NUMBER")
+if not pr_number_str:
+    print("ERROR: PR_NUMBER environment variable not set", file=sys.stderr)
+    sys.exit(1)
+
+try:
+    pr_n = int(pr_number_str)
+except ValueError:
+    print(f"ERROR: PR_NUMBER must be integer, got: {pr_number_str}", file=sys.stderr)
+    sys.exit(1)
+
+repo_url = "https://github.com/MBorky/recipes-api.git"
 auth = Auth.Token(git_token)
 g = Github(auth=auth)
-pr_n = int(os.getenv("PR_NUMBER"))
 
 llm = OpenAI(model="gpt-4o-mini", api_base=base_url, api_key=api_key)
 github_tools = GithubTools(g, repository)
